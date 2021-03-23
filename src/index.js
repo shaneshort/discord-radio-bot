@@ -1,7 +1,19 @@
 const { Client, Intents } = require('discord.js');
 const { NoSubscriberBehavior, StreamType, createAudioPlayer, createAudioResource, entersState, AudioPlayerStatus, VoiceConnectionStatus, joinVoiceChannel } = require('@discordjs/voice');
 const { createRecorder } = require('./Recorder');
-const config = require('../data/config.json');
+const yargs = require('yargs/yargs')
+const { hideBin } = require('yargs/helpers')
+
+const args = yargs(hideBin(process.argv))
+  .option('config', {
+    alias: 'c',
+    description: 'configuration file path',
+    type: 'string',
+    default: '../data/config.json'
+  }).argv
+
+const config = require(args.config);
+console.log(config);
 
 const player = createAudioPlayer({
   behaviors: {
@@ -47,7 +59,12 @@ client.on('ready', async () => {
   console.log('Discord.js client is ready!');
   try {
     await attachRecorder();
-    console.log('Song is ready to play!');
+		const channel = client.channels.cache.get(config.channelId);
+    if (!channel) return console.error("The channel does not exist!");
+    const connection = await connectToChannel(channel);
+    connection.subscribe(player);
+    // Yay, it worked!
+    console.log("Successfully connected.");
   } catch (error) {
     console.error(error);
   }
