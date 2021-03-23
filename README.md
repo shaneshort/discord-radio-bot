@@ -15,6 +15,10 @@ A proof-of-concept radio bot for Discord.js. Streams audio from a hardware devic
 	- See below for system-specific details.
 4. Start! - `npm start`
 
+## Requirements
+- node.js 14 (required for the safe operator used in the codebase)
+- ffmpeg
+
 ## Configuring on Windows via `dshow`
 
 Run `ffmpeg -list_devices true -f dshow -i dummy` and observe output containing something similar:
@@ -44,6 +48,12 @@ Run `pactl list short sources` and observe output containing something similar:
 5   alsa_output.pci.3.analog-stereo.monitor   module-alsa-card.c   s16le 2ch 44100Hz   IDLE
 ```
 
+Specifically you're looking for a 'monitor' source. If you're attempting to use a line input, you will have to create a loopback sink:
+```
+pactl load-module module-loopback sink=<sink_name>
+```
+you will need to find the monitor output for your line input and create a loopback for that. for more information, visit: https://endless.ersoft.org/pulseaudio-loopback/
+
 Then configure your `config.json` with the device you'd like to use:
 
 ```json
@@ -54,6 +64,15 @@ Then configure your `config.json` with the device you'd like to use:
   "maxTransmissionGap": 5000
 }
 ```
+
+## Multiple Instances/Configurations
+This fork supports custom configuration locations using the --config flag. You will need to pass a file relative to the 'src' directory (../data/config.json is the default), or an absolute path.. for example;
+
+```
+npm start -- --config /etc/bot/party.json
+```
+
+This allows you to run multiple bots from the same installed codebase.
 
 ## License
 
